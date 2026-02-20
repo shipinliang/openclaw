@@ -1,5 +1,4 @@
 import fs from "node:fs";
-import { createRequire } from "node:module";
 import path from "node:path";
 import { Logger as TsLogger } from "tslog";
 import type { OpenClawConfig } from "../config/types.js";
@@ -16,7 +15,10 @@ const LOG_PREFIX = "openclaw";
 const LOG_SUFFIX = ".log";
 const MAX_LOG_AGE_MS = 24 * 60 * 60 * 1000; // 24h
 
-const requireConfig = createRequire(import.meta.url);
+function getRequireConfig(): ReturnType<typeof import("node:module").createRequire> {
+  const { createRequire } = require("node:module");
+  return createRequire(import.meta.url);
+}
 
 export type LoggerSettings = {
   level?: LogLevel;
@@ -55,7 +57,7 @@ function resolveSettings(): ResolvedSettings {
     (loggingState.overrideSettings as LoggerSettings | null) ?? readLoggingConfig();
   if (!cfg) {
     try {
-      const loaded = requireConfig("../config/config.js") as {
+      const loaded = getRequireConfig()("../config/config.js") as {
         loadConfig?: () => OpenClawConfig;
       };
       cfg = loaded.loadConfig?.().logging;
